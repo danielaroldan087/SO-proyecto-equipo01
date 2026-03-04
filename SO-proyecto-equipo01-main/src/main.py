@@ -1,45 +1,41 @@
-from src.Proceso import Proceso
-import time
+from gestor import GestorProcesos
+
+
+def mostrar_menu():
+    print("\n===== GESTOR DE PROCESOS =====")
+    print("1. Crear proceso")
+    print("2. Ejecutar planificación")
+    print("3. Mostrar procesos")
+    print("4. Salir")
+
 
 def main():
-    """
-    Primer arranque del proyecto de Planificador de Procesos
-    Inicializa los procesos y simula cambios de estado
-    """
-    print("=" * 50)
-    print("INICIANDO PLANIFICADOR DE PROCESOS")
-    print("=" * 50)
-    print()  
-    # Crear los procesos
-    procesos = [
-        Proceso(1),
-        Proceso(2),
-        Proceso(3)
-    ]
-    
-    print(f"✓ Se crearon {len(procesos)} procesos")
-    print()  
-    # Primer arranque: recorrer los procesos y cambiar estados
-    print("--- Simulando cambios de estado ---\n")
-    for p in procesos:
-        print(f"Proceso {p.id} está en estado: {p.estado}")
-        
-        # Cambiar a Running
-        p.estado = "Running"
-        print(f"  → Proceso {p.id} cambió a: {p.estado}")
-        time.sleep(1)  # Pausa para visualizar
-        
-        # Volver a Ready
-        p.estado = "Ready"
-        print(f"  → Proceso {p.id} volvió a: {p.estado}\n")
-    
-    print("=" * 50)
-    print("ARRANQUE COMPLETADO")
-    print("=" * 50)
+    gestor = GestorProcesos()
+
+    while True:
+        mostrar_menu()
+        opcion = input("Seleccione una opción: ")
+
+        if opcion == "1":
+            try:
+                tiempo = int(input("Ingrese el tiempo de ejecución del proceso: "))
+                gestor.crear_proceso(tiempo)
+            except ValueError:
+                print("Por favor ingrese un número válido.")
+
+        elif opcion == "2":
+            gestor.planificar()
+
+        elif opcion == "3":
+            gestor.mostrar_procesos()
+
+        elif opcion == "4":
+            print("Saliendo del sistema...")
+            break
+
+        else:
+            print("Opción inválida. Intente nuevamente.")
+
 
 if __name__ == "__main__":
     main()
-
-
-
-    

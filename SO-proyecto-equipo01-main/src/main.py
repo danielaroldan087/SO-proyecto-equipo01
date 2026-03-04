@@ -1,4 +1,4 @@
-from gestor import GestorProcesos
+from Gestor import GestorProcesos
 
 
 def mostrar_menu():

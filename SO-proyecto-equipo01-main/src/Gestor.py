@@ -1,4 +1,4 @@
-from proceso import Proceso, EstadoProceso
+from Proceso import Proceso, EstadoProceso
 
 
 class GestorProcesos:

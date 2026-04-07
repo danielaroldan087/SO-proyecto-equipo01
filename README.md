@@ -11,8 +11,8 @@
 #Descripción del proyecto: 
 Aplicación que simula procesos y demuestra concurrencia, sincronización e interacción con el sistema operativo real.
 
-#Lenguaje: Python
-#Ejecución: python src/main.py
+#Lenguaje: C++
+#Ejecución: Entrega2_Csharp.cs
 
 Para ver la propuesta técnica, por favor dar click en "view raw", se abrirá el word en otra pestaña.
 

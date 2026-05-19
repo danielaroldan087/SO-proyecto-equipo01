@@ -1,0 +1,189 @@
+#include <iostream>
+#include <thread>   // Para crear hilos reales
+#include <mutex>    // Para la sincronización (el candado)
+#include <vector>   // Para guardar nuestra lista de procesos
+#include <chrono>   // Para simular tiempo de espera (pausas)
+#include <string>
+
+using namespace std;
+
+// --- ESTADO DE LOS PROCESOS ---
+enum Estado { LISTO, EJECUTANDO, BLOQUEADO, TERMINADO };
+
+// --- PCB (Process control block)---
+struct PCB {
+    int id;
+    Estado estado;
+    string nombre;
+    int prioridad;    //El PCB almacena información administrativa del proceso.”
+};
+
+// --- RECURSO COMPARTIDO  ---
+mutex mtx; // Este es nuestro "Semáforo" o "Candado" (Mutex)
+int RecursoCompartido = 0; // Simularemos que todos los procesos quieren sumar aquí
+
+
+// Función para mostrar estados 
+string obtenerEstado(Estado e) {
+    switch(e) {
+        case LISTO: return "LISTO";
+        case EJECUTANDO: return "EJECUTANDO";
+        case BLOQUEADO: return "BLOQUEADO";
+        case TERMINADO: return "TERMINADO";
+        default: return "DESCONOCIDO";
+    }
+}
+
+// Función que ejecutará cada hilo (proceso)
+
+void ejecutarProceso(PCB &proceso) {
+    
+    // 1. Transición de estado
+    
+    cout << "\n[PROCESO " << proceso.id << "] LISTO -> EJECUTANDO" << endl;
+
+    proceso.estado = EJECUTANDO;
+
+    cout << "[PROCESO " << proceso.id << "] Estado actual: " << obtenerEstado(proceso.estado) << endl;
+
+    // Mostrar ID del hilo
+    
+    cout << "[HILO " << this_thread::get_id() << "] Ejecutando proceso " << proceso.id << endl;
+
+    // Simular que el proceso está haciendo algo antes de pedir el recurso
+    
+    this_thread::sleep_for(chrono::milliseconds(500));
+
+    // 2. SINCRONIZACIÓN: Intentar entrar a la Sección Crítica
+    
+    cout << "[PROCESO " << proceso.id << "] Intentando acceder al recurso..." << endl;
+
+    proceso.estado = BLOQUEADO;
+
+    cout << "[PROCESO " << proceso.id << "] Estado actual: " << obtenerEstado(proceso.estado) << endl;
+    
+    // El mutex bloquea a los demás. Si está ocupado, el hilo se queda en "BLOQUEADO"
+    
+    mtx.lock(); 
+    
+    // SECCIÓN CRÍTICA (Solo un hilo entra aquí a la vez)
+    
+    cout << "\n>>> [PROCESO " << proceso.id << "] OBTUVO EL RECURSO" << endl;
+
+    cout << "Valor actual del recurso: " << RecursoCompartido << endl;
+
+    // Simular trabajo con recurso compartido
+    
+    this_thread::sleep_for(chrono::milliseconds(1000));
+
+    RecursoCompartido++;
+
+    cout << "Nuevo valor del recurso: " << RecursoCompartido << endl;
+
+    cout << ">>> [PROCESO " << proceso.id << "] Liberando recurso..." << endl;
+    
+    // Unlock del mutex
+    mtx.unlock();
+
+
+    // 3. Terminar proceso
+    
+    cout << "[PROCESO " << proceso.id << "] BLOQUEADO -> TERMINADO" << endl;
+
+    proceso.estado = TERMINADO;
+
+    cout << "[PROCESO " << proceso.id << "] Estado actual: " << obtenerEstado(proceso.estado) << endl;
+
+}
+
+int main() {
+    
+    cout << "========================================\n";
+    cout << " GESTOR DE PROCESOS Y CONCURRENCIA\n";
+    cout << "========================================\n";
+
+    // Procesos reales del sistema operativo
+
+    cout << "\n=== LISTANDO PROCESOS REALES ===\n";
+
+    // WINDOWS
+    system("tasklist");
+    
+    //Monitoreo de CPU
+    
+     cout << "\n=== MONITOREO DE CPU ===\n";
+
+    system("wmic cpu get loadpercentage");
+    
+    //Monitoreo de memoria
+    
+     cout << "\n=== MONITOREO DE MEMORIA ===\n";
+
+    system("systeminfo | findstr /C:\"Memoria\"");
+    
+    //Abrir Proceso Real
+    
+    cout << "\n=== ABRIENDO PROCESO REAL ===\n";
+
+    system("start notepad");
+
+
+    // ---CREACIÓN DE PROCESOS---
+    
+    const int NUM_PROCESOS = 3;
+    vector<PCB> listaProcesos(NUM_PROCESOS);
+    vector<thread> hilos;
+
+    cout << "\n=== CREANDO COLA DE PROCESOS ===\n";
+
+    for(int i = 0; i < NUM_PROCESOS; i++) {
+
+        listaProcesos[i].id = i + 1;
+
+        listaProcesos[i].estado = LISTO;
+
+        listaProcesos[i].nombre =
+            "Proceso_" + to_string(i + 1);
+
+        listaProcesos[i].prioridad = i + 1;
+
+        cout << "[SISTEMA] Proceso " << listaProcesos[i].id << " agregado a cola de LISTOS" << endl;
+    }
+    
+    // Se inserta un planificador tipo FCFS
+    
+    cout << "\n=== PLANIFICADOR FCFS ===\n";
+
+    for(int i = 0; i < NUM_PROCESOS; i++) {
+
+        cout << "\n[PLANIFICADOR FCFS] " << "CPU asignada al proceso " << listaProcesos[i].id << endl;
+
+        // Crear hilo real
+        hilos.push_back(
+            thread( ejecutarProceso, ref(listaProcesos[i]))
+        );
+
+        // Simular tiempo entre asignaciones
+        this_thread::sleep_for(chrono::milliseconds(300));
+    }
+    
+    // Esperar a que todos terminen
+
+    for(int i = 0; i < NUM_PROCESOS; i++) { hilos[i].join();}
+
+    // RESULTADO FINAL
+   
+    cout << "\n========================================\n";
+    cout << "[SISTEMA] Todos los procesos finalizaron." << endl;
+    cout << "[RESULTADO FINAL] Valor del recurso compartido: " << RecursoCompartido << endl;
+    cout << "========================================\n";
+
+    
+    // FINALIZAR PROCESO REAL
+
+    cout << "\n--> FINALIZANDO PROCESO REAL <--\n";
+
+    system("taskkill /IM notepad.exe /F");
+
+    return 0;
+}
